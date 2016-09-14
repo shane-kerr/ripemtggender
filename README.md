@@ -1,3 +1,8 @@
+# Guess RIPE Meeting Attendee Genders
+
+This software helps to figure out the genders of RIPE meeting
+attendees.
+
 # Installation
 
 You need Python 3 installed. Get the latest version that's convenient.
