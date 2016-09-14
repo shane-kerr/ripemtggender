@@ -46,3 +46,9 @@ of the attendees:
 
 You will end up with ripe-genders.csv, which has guesses about the
 genders of each meeting.
+
+Note that if you don't have an API key you will be limited to 1000
+lookups per day, so you will have to spread your lookups over a 
+longer period. It will make sense to use a local cache of name/country
+information to avoid duplicate lookups in this case - actually that
+would always help.
