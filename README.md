@@ -1,7 +1,8 @@
 # Guess RIPE Meeting Attendee Genders
 
 This software helps to figure out the genders of RIPE meeting
-attendees.
+attendees. It uses the RIPE meeting web sites and genderize.io to
+figure this out.
 
 # Installation
 
@@ -44,7 +45,7 @@ of the attendees:
 
     (genderenv) $ python3 guessgender.py *.csv
 
-You will end up with ripe-genders.csv, which has guesses about the
+You will end up with `ripe-genders.csv`, which has guesses about the
 genders of each meeting.
 
 Note that if you don't have an API key you will be limited to 1000
