@@ -1,4 +1,5 @@
 import csv
+import pickle
 import re
 import sys
 
@@ -12,9 +13,52 @@ if API_KEY:
 else:
     genderize = Genderize()
 
+class gender_cache:
+    def __init__(self, file_name):
+        try:
+            with open(file_name, 'rb') as f:
+                self.cache = pickle.load(f)
+        except IOError:
+            self.cache = {}
+        self.file_name = file_name
+        self.hits = 0
+        self.misses = 0
+
+    def save(self):
+        with open(self.file_name, 'wb') as f:
+            pickle.dump(self.cache, f)
+
+    def get(self, names, country_id=None):
+        probabilities = []
+        if not country_id in self.cache:
+            self.cache[country_id] = {}
+        uncached_names = []
+        for name in names:
+            if name in self.cache[country_id]:
+                probabilities.append(self.cache[country_id][name])
+                self.hits = self.hits + 1
+            else:
+                uncached_names.append(name)
+                self.misses = self.misses + 1
+
+        if uncached_names:
+            if country_id is None:
+                genderize_probabilities = genderize.get(uncached_names)
+            else:
+                genderize_probabilities = genderize.get(uncached_names,
+                                                        country_id=country_id)
+            for gender_info in genderize_probabilities:
+                name = gender_info['name']
+                self.cache[country_id][name] = gender_info
+            probabilities.extend(genderize_probabilities)
+
+        return probabilities
+
 # TODO: figure out what to do with names like 'H.' or 'A'
 
 # Note some are wrong (like "Miek")
+
+gc = gender_cache('guessgender.cache')
 
 for file_name in sys.argv[1:]:
     mtg_id = file_name[4:6]
@@ -40,9 +84,9 @@ for file_name in sys.argv[1:]:
             query_names = names[0:10]
             names = names[10:]
             if country in ('XX', ''):
-                probabilities = genderize.get(query_names)
+                probabilities = gc.get(query_names)
             else:
-                probabilities = genderize.get(query_names, country_id=country)
+                probabilities = gc.get(query_names, country_id=country)
             for gender_info in probabilities:
                 if gender_info['gender'] in ('male', 'female'):
                     if gender_info['gender'] == 'male':
@@ -67,7 +111,7 @@ for file_name in sys.argv[1:]:
         while unknown_gender:
             query_names = unknown_gender[0:10]
             unknown_gender = unknown_gender[10:]
-            probabilities = genderize.get(query_names)
+            probabilities = gc.get(query_names)
             for gender_info in probabilities:
                 if gender_info['gender'] in ('male', 'female'):
                     if gender_info['gender'] == 'male':
@@ -92,3 +136,6 @@ for file_name in sys.argv[1:]:
         writer.writerow((mtg_id, "%.2f" % xy_sum,
                                  "%.2f" % xx_sum,
                                  "%.2f" % na_sum))
+
+print("cache hits: %d, cache misses: %d" % (gc.hits, gc.misses))
+gc.save()
