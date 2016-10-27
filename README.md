@@ -50,6 +50,10 @@ genders of each meeting.
 
 Note that if you don't have an API key you will be limited to 1000
 lookups per day, so you will have to spread your lookups over a 
-longer period. It will make sense to use a local cache of name/country
-information to avoid duplicate lookups in this case - actually that
-would always help.
+longer period.
+
+The software uses a local cache of name/country information to avoid
+duplicate lookups in this case, which speeds up the process and
+prevents unnecessary calls to the genderize.io service. This is in the
+`guessgender.cache` file. If you want to flush the cache, remove the
+file.
