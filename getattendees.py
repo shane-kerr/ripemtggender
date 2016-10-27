@@ -30,11 +30,14 @@ def parse_early(soup):
     text = None
     for div in soup.find_all('div'):
         div_id = div.get('id')
-        if div_id and div_id.startswith('parent-fieldname-text-'):
+        if div_id and (div_id == 'content-core'):
             text = str(div)
 
     attendees = []
-    for line in text.split("<br/>"):
+    lines = text.split("<br/>")
+    if not lines:
+        lines = text.split("<br />")
+    for line in lines:
         line = re.sub(r'\n', ' ', line)
         line = re.sub(r'.*<p>', '', line)
         line = re.sub(r'</p>.*', '', line)
@@ -56,11 +59,14 @@ def parse_pre(soup):
     text = None
     for div in soup.find_all('div'):
         div_id = div.get('id')
-        if div_id and div_id.startswith('parent-fieldname-text-'):
+        if div_id and (div_id == 'content-core'):
             text = str(div.pre)[5:-6]
 
     attendees = []
-    for line in text.split("<br/>"):
+    lines = text.split("<br/>")
+    if not lines:
+        lines = text.split("<br />")
+    for line in lines:
         line = line.strip()
         if line:
             # filter out "PARTICIPANTS" line if present
@@ -91,10 +97,12 @@ def parse_three_lines(soup):
     text = None
     for div in soup.find_all('div'):
         div_id = div.get('id')
-        if div_id and div_id.startswith('parent-fieldname-text-'):
+        if div_id and (div_id == 'content-core'):
             text = str(div.pre)[5:-6]
 
-    lines = text.split('<br/>')
+    lines = text.split("<br/>")
+    if not lines:
+        lines = text.split("<br />")
     while lines:
         if not lines[0].strip(): 
             break
@@ -125,10 +133,13 @@ def parse_two_lines(soup):
     text = None
     for div in soup.find_all('div'):
         div_id = div.get('id')
-        if div_id and div_id.startswith('parent-fieldname-text-'):
+        if div_id and (div_id == 'content-core'):
             text = str(div.pre)[5:-6]
 
-    for line in text.split("<br/>"):
+    lines = text.split("<br/>")
+    if not lines:
+        lines = text.split("<br />")
+    for line in lines:
         if line and (not line[0].isspace()):
             fname = line.split()[0]
             attendees.append((fname, 'XX'))
