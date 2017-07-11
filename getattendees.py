@@ -262,6 +262,24 @@ def parse_table_attendee(soup):
 
     return attendees
 
+# Some country fixups
+def country_fixups(country):
+    fixed = country.strip()
+    if fixed == 'Palestinian Territory':
+        fixed = 'PS'
+    if fixed == 'Moldova':
+        fixed = 'MD'
+    if fixed == 'Macedonia':
+        fixed = 'MK'
+    # Bravehearts
+    if fixed == 'Scotland':
+        fixed = 'GB'
+    if "Taiwan" in fixed:
+        fixed = 'TW'
+    if "Stateless" in fixed:
+        fixed = ''
+    return fixed
+
 # RIPE 64 switched to putting first name first
 def parse_fname_lname(soup):
     attendees = []
@@ -271,21 +289,21 @@ def parse_fname_lname(soup):
     rows = table_body.find_all('tr')
     for row in rows:
         cols = [col.text for col in row.find_all('td')]
-        fname, lname, country = cols[0], cols[1], cols[3].strip()
-        # Some country fixups
-        if country == 'Palestinian Territory':
-            country = 'PS'
-        if country == 'Moldova':
-            country = 'MD'
-        if country == 'Macedonia':
-            country = 'MK'
-        # Bravehearts
-        if country == 'Scotland':
-            country = 'GB'
-        if "Taiwan" in country:
-            country = 'TW'
-        if "Stateless" in country:
-            country = ''
+        fname, lname, country = cols[0], cols[1], country_fixups(cols[3])
+        attendees.append((fname, country))
+
+    return attendees
+
+# RIPE 74 added an empty first column
+def parse_empty_fname_lname(soup):
+    attendees = []
+
+    table = soup.find('table', attrs={'id': 'attendeeTable'})
+    table_body = table.find('tbody')
+    rows = table_body.find_all('tr')
+    for row in rows:
+        cols = [col.text for col in row.find_all('td')]
+        fname, lname, country = cols[1], cols[2], country_fixups(cols[4])
         attendees.append((fname, country))
 
     return attendees
@@ -364,6 +382,7 @@ mtg_def = [
     ( 71, url_fmt8, parse_fname_lname ),
     ( 72, url_fmt8, parse_fname_lname ),
     ( 73, url_fmt8, parse_fname_lname ),
+    ( 74, url_fmt8, parse_empty_fname_lname ),
 ]
 
 for (mtg, url_fmt, scraper) in mtg_def:
