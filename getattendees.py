@@ -383,6 +383,7 @@ mtg_def = [
     ( 72, url_fmt8, parse_fname_lname ),
     ( 73, url_fmt8, parse_fname_lname ),
     ( 74, url_fmt8, parse_empty_fname_lname ),
+    ( 75, url_fmt8, parse_empty_fname_lname ),
 ]
 
 for (mtg, url_fmt, scraper) in mtg_def:
