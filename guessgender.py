@@ -61,8 +61,10 @@ class gender_cache:
 gc = gender_cache('guessgender.cache')
 
 for file_name in sys.argv[1:]:
-    mtg_id = file_name[4:6]
-    print("--- RIPE %s ----------------" % mtg_id)
+    mtg_id = re.sub(r'^([A-Z]+)(\d+)-.*$', r'\g<1> \g<2>', file_name.upper())
+    mtg_name = re.sub(r' \d+$', '', mtg_id).lower()
+
+    print("--- %s ----------------" % mtg_id)
 
     first_names_by_country = {}
     with open(file_name, 'r', encoding='utf-8') as csvfile:
@@ -131,7 +133,7 @@ for file_name in sys.argv[1:]:
                     na_sum += 1.0
                     print("-.--  ? %s" % (gender_info['name']))
 
-    with open('ripe-genders.csv', 'a', encoding='utf-8') as csvfile:
+    with open(mtg_name + '-genders.csv', 'a', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow((mtg_id, "%.2f" % xy_sum,
                                  "%.2f" % xx_sum,
