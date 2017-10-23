@@ -2,10 +2,12 @@ import csv
 import pickle
 import re
 import sys
+import time
 
-from genderize import Genderize
+from genderize import Genderize, GenderizeException
 
 # if you want to do a lot of queries you can put your API key here
+#API_KEY = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 API_KEY = None
 
 if API_KEY:
@@ -42,11 +44,25 @@ class gender_cache:
                 self.misses = self.misses + 1
 
         if uncached_names:
-            if country_id is None:
-                genderize_probabilities = genderize.get(uncached_names)
-            else:
-                genderize_probabilities = genderize.get(uncached_names,
-                                                        country_id=country_id)
+            genderize_probabilities = None
+            attempts = 0
+            while genderize_probabilities is None:
+                attempts += 1
+                try:
+                    if country_id is None:
+                        genderize_probabilities = genderize.get(uncached_names)
+                    else:
+                        cid = country_id
+                        genderize_probabilities = genderize.get(uncached_names,
+                                                                country_id=cid)
+                except GenderizeException:
+                    # if we have too many attempts, then exit
+                    if attempts >= 3:
+                        raise
+                    # otherwise delay a bit and try again
+                    print("ERROR getting info, retrying")
+                    time.sleep(0.1)
+
             for gender_info in genderize_probabilities:
                 name = gender_info['name']
                 self.cache[country_id][name] = gender_info
@@ -77,9 +93,10 @@ for file_name in sys.argv[1:]:
     xy_sum = 0.0
     xx_sum = 0.0
     na_sum = 0.0
-    for country, names in first_names_by_country.items():
+    for country, names in sorted(first_names_by_country.items()):
         print("== Country '%s' ==" % country)
         unknown_gender = []
+        names.sort()
         # we have to split our names up into sets of no bigger than 10,
         # because that is all the API supports
         while names:
