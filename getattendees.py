@@ -171,6 +171,10 @@ def parse_cc(soup):
     rows = table_body.find_all('tr')
     for row in rows:
         cols = [col.text for col in row.find_all('td')]
+        # handle RIPE 40 newly-broken table
+        if cols and cols[0] == '\xa0':
+            continue
+        # handle most cases
         if cols and cols[0]:
             name, country = cols[0], cols[1].strip()
             info = name.split()
@@ -384,6 +388,7 @@ mtg_def = [
     ( 73, url_fmt8, parse_fname_lname ),
     ( 74, url_fmt8, parse_empty_fname_lname ),
     ( 75, url_fmt8, parse_empty_fname_lname ),
+    ( 76, url_fmt8, parse_empty_fname_lname ),
 ]
 
 for (mtg, url_fmt, scraper) in mtg_def:
