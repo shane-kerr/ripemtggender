@@ -151,7 +151,7 @@ for file_name in sys.argv[1:]:
                     print("-.--  ? %s" % (gender_info['name']))
 
     with open(mtg_name + '-genders.csv', 'a', encoding='utf-8') as csvfile:
-        writer = csv.writer(csvfile)
+        writer = csv.writer(csvfile, dialect='unix')
         writer.writerow((mtg_id, "%.2f" % xy_sum,
                                  "%.2f" % xx_sum,
                                  "%.2f" % na_sum))
