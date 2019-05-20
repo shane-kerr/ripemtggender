@@ -4,7 +4,7 @@ This software helps to figure out the genders of RIPE meeting
 attendees. It uses the RIPE meeting web sites and genderize.io to
 figure this out.
 
-![Chart of RIPE meeting attendee gender](RIPE-attendee-gender.png)
+![Chart of RIPE meeting attendee gender](RIPE-attendee-gender-chart.png)
 
 # Installation
 
