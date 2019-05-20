@@ -4,6 +4,8 @@ This software helps to figure out the genders of RIPE meeting
 attendees. It uses the RIPE meeting web sites and genderize.io to
 figure this out.
 
+![Chart of RIPE meeting attendee gender](RIPE-attendee-gender.png)
+
 # Installation
 
 You need Python 3 installed. Get the latest version that's convenient.
