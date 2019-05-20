@@ -12,10 +12,14 @@ Make a Python virtual environment for this work:
 
     $ python3 -m venv genderenv
     $ . genderenv/bin/activate
-    (genderenv) $ pip3 install beautifulsoup4
-    (genderenv) $ pip3 install requests
-    (genderenv) $ pip3 install lxml
-    (genderenv) $ pip3 install Genderize
+    (genderenv) $ pip3 install -r requirements.txt
+
+This installs:
+
+* beautifulsoup4
+* requests
+* lxml
+* Genderize
 
 # Collecting Meeting Attendees
 
