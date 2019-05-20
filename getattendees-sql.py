@@ -610,8 +610,8 @@ mtg_def = [
     (75, url_fmt8, parse_empty_fname_lname),
     (76, url_fmt8, parse_empty_fname_lname),
     (77, url_fmt8, parse_empty_fname_lname),
+    (78, url_fmt8, parse_empty_fname_lname),
 ]
-
 
 def init_db():
     db = sqlite3.connect('ripe-attendees.db')

@@ -417,7 +417,7 @@ for file_name in sys.argv[1:]:
     mtg_id = re.sub(r'^([A-Z]+)(\d+)-.*$', r'\g<1> \g<2>', file_name.upper())
     mtg_name = re.sub(r' \d+$', '', mtg_id).lower()
 
-    print("--- %s ----------------" % mtg_id)
+    print("--- %s ----------------" % mtg_id, flush=True)
 
     first_names_by_country = {}
     with open(file_name, 'r', encoding='utf-8') as csvfile:
@@ -431,7 +431,7 @@ for file_name in sys.argv[1:]:
     xx_sum = 0.0
     na_sum = 0.0
     for country, names in sorted(first_names_by_country.items()):
-        print("== Country '%s' ==" % country)
+        print("== Country '%s' ==" % country, flush=True)
         info_by_country = guess_genders(gendercache=gc, names=names,
                                         country=country)
         xy_sum += info_by_country['xy']
@@ -460,7 +460,7 @@ for file_name in sys.argv[1:]:
                         unknown.extend(last_guess['unknown'])
                 na_sum += len(unknown)
                 for unknown_name in unknown:
-                    print("-.--  ? %s" % unknown_name)
+                    print("-.--  ? %s" % unknown_name, flush=True)
 
     with open(mtg_name + '-genders.csv', 'a', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile, dialect='unix')
@@ -469,5 +469,5 @@ for file_name in sys.argv[1:]:
                          "%.2f" % xx_sum,
                          "%.2f" % na_sum))
 
-print("cache hits: %d, cache misses: %d" % (gc.hits, gc.misses))
+print("cache hits: %d, cache misses: %d" % (gc.hits, gc.misses), flush=True)
 gc.save()
