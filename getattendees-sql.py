@@ -16,9 +16,10 @@ import requests
 
 # XXX RIPE 58 Matja<U+009E>,SI
 
-url_fmt1 = 'https://www.ripe.net/participate/meetings/ripe-meetings/ripe-%d/attendee-list'
-url_fmt2 = 'https://www.ripe.net/participate/meetings/ripe-meetings/ripe-%d/attendee-list'
-url_fmt3 = 'https://www.ripe.net/participate/meetings/ripe-meetings/ripe-%d/attendees'
+URL_MEETINGS = 'https://www.ripe.net/participate/meetings/ripe-meetings/'
+url_fmt1 = URL_MEETINGS + 'ripe-%d/attendee-list'
+url_fmt2 = URL_MEETINGS + 'ripe-%d/attendee-list'
+url_fmt3 = URL_MEETINGS + 'ripe-%d/attendees'
 url_fmt4 = 'http://ripe%d.ripe.net/attendee_list.html'
 url_fmt5 = 'http://ripe%d.ripe.net/attendees.html'
 url_fmt6 = 'https://ripe%d.ripe.net/registration/attendee-list/'
@@ -612,6 +613,7 @@ mtg_def = [
     (77, url_fmt8, parse_empty_fname_lname),
     (78, url_fmt8, parse_empty_fname_lname),
 ]
+
 
 def init_db():
     db = sqlite3.connect('ripe-attendees.db')

@@ -7,13 +7,14 @@ import time
 from genderize import Genderize, GenderizeException
 
 # if you want to do a lot of queries you can put your API key here
-#API_KEY = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+# API_KEY = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 API_KEY = None
 
 if API_KEY:
     genderize = Genderize(api_key=API_KEY)
 else:
     genderize = Genderize()
+
 
 class gender_cache:
     """
@@ -92,6 +93,7 @@ class gender_cache:
             probabilities.extend(genderize_probabilities)
 
         return probabilities
+
 
 # Note some guesses from genderize.io are wrong (like "Miek")
 
@@ -353,6 +355,7 @@ gc.add(name='Andjelko', gender='male', probability=1.0)
 gc.add(name='Radhiya', gender='female', probability=1.0, country='OM')
 # met in person
 gc.add(name='Rhisa', gender='female', probability=1.0, country='US')
+
 
 def guess_genders(*, gendercache, names, country=''):
     """
