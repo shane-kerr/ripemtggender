@@ -17,10 +17,12 @@ import requests
 # XXX RIPE 58 Matja<U+009E>,SI
 
 url_fmt1 = 'https://www.ripe.net/participate/meetings/ripe-meetings/ripe-%d/attendee-list'
-url_fmt2 = 'https://www.ripe.net/participate/meetings/ripe-meetings/ripe-%d/attendee-list'
-url_fmt3 = 'https://www.ripe.net/participate/meetings/ripe-meetings/ripe-%d/attendees'
-url_fmt4 = 'http://ripe%d.ripe.net/attendee_list.html'
-url_fmt5 = 'http://ripe%d.ripe.net/attendees.html'
+# url_fmt2 was migrated to url_fmt1 on the server side
+#url_fmt2 = 'https://www.ripe.net/participate/meetings/ripe-meetings/ripe-%d/attendee-list'
+# url_fmt3 was migrated to url_fmt1 on the server side
+#url_fmt3 = 'https://www.ripe.net/participate/meetings/ripe-meetings/ripe-%d/attendees'
+url_fmt4 = 'https://ripe%d.ripe.net/attendee_list.html'
+url_fmt5 = 'https://ripe%d.ripe.net/attendees.html'
 url_fmt6 = 'https://ripe%d.ripe.net/registration/attendee-list/'
 url_fmt7 = 'https://ripe%d.ripe.net/attendee-list/'
 url_fmt8 = 'https://ripe%d.ripe.net/attend/attendee-list/'
@@ -232,7 +234,7 @@ def parse_lname_fname(soup):
 def parse_table_t1(soup):
     attendees = []
 
-    table = soup.find('table', attrs={'id': 't1'})
+    table = soup.find('table')
     table_body = table.find('tbody')
     rows = table_body.find_all('tr')
     for row in rows:
@@ -313,63 +315,63 @@ def parse_empty_fname_lname(soup):
     return attendees
 
 mtg_def = [
-    (  1, url_fmt1, parse_early ),
-    (  2, url_fmt1, parse_early ),
-    (  3, url_fmt1, parse_early ),
-    (  4, url_fmt1, parse_early ),
-    (  5, url_fmt1, parse_early ),
-    (  6, url_fmt1, parse_early ),
-    (  7, url_fmt1, parse_early ),
-    (  8, url_fmt1, parse_early ),
-    (  9, url_fmt2, parse_pre ),
-    ( 10, url_fmt2, parse_pre ),
-    ( 11, url_fmt2, parse_pre ),
-    ( 12, url_fmt2, parse_pre ),
-    ( 13, url_fmt2, parse_pre ),
-    ( 14, url_fmt2, parse_pre ),
-    ( 15, url_fmt2, parse_pre ),
-    ( 16, url_fmt3, parse_pre ),
-    ( 17, url_fmt2, parse_pre ),
-    ( 18, url_fmt2, parse_pre ),
-    ( 19, url_fmt2, parse_three_lines ),
-    ( 20, url_fmt2, parse_two_lines ),
-    ( 21, url_fmt2, parse_pre ),
-    ( 22, url_fmt2, parse_pre ),
-    ( 23, url_fmt2, parse_pre ),
-    ( 24, url_fmt1, parse_early ),
-    ( 25, url_fmt2, parse_two_lines ),
-    ( 26, url_fmt2, parse_two_lines ),
+    (  1, url_fmt1, parse_table ),
+    (  2, url_fmt1, parse_table ),
+    (  3, url_fmt1, parse_table ),
+    (  4, url_fmt1, parse_table ),
+    (  5, url_fmt1, parse_table ),
+    (  6, url_fmt1, parse_table ),
+    (  7, url_fmt1, parse_table ),
+    (  8, url_fmt1, parse_table ),
+    (  9, url_fmt1, parse_table ),
+    ( 10, url_fmt1, parse_table ),
+    ( 11, url_fmt1, parse_table ),
+    ( 12, url_fmt1, parse_table ),
+    ( 13, url_fmt1, parse_table ),
+    ( 14, url_fmt1, parse_table ),
+    ( 15, url_fmt1, parse_table ),
+    ( 16, url_fmt1, parse_table ),
+    ( 17, url_fmt1, parse_table ),
+    ( 18, url_fmt1, parse_table ),
+    ( 19, url_fmt1, parse_table ),
+    ( 20, url_fmt1, parse_table ),
+    ( 21, url_fmt1, parse_table ),
+    ( 22, url_fmt1, parse_table ),
+    ( 23, url_fmt1, parse_table ),
+    ( 24, url_fmt1, parse_table ),
+    ( 25, url_fmt1, parse_table ),
+    ( 26, url_fmt1, parse_table ),
     # 27 is missing from the RIPE web site
-    ( 28, url_fmt2, parse_table ),
-    ( 29, url_fmt2, parse_cc ),
-    ( 30, url_fmt2, parse_cc ),
-    ( 31, url_fmt2, parse_cc ),
-    ( 32, url_fmt2, parse_cc ),
-    ( 33, url_fmt2, parse_cc ),
-    ( 34, url_fmt2, parse_cc ),
-    ( 35, url_fmt2, parse_cc ),
-    ( 36, url_fmt2, parse_cc ),
-    ( 37, url_fmt2, parse_cc ),
-    ( 38, url_fmt2, parse_cc ),
-    ( 39, url_fmt2, parse_cc ),
-    ( 40, url_fmt2, parse_cc ),
-    ( 41, url_fmt2, parse_cc ),
-    ( 42, url_fmt2, parse_cc ),
-    ( 43, url_fmt2, parse_cc ),
-    ( 44, url_fmt2, parse_lname_fname ),
-    ( 45, url_fmt2, parse_lname_fname ),
-    ( 46, url_fmt2, parse_lname_fname ),
-    ( 47, url_fmt2, parse_lname_fname ),
-    ( 48, url_fmt2, parse_lname_fname ),
-    ( 49, url_fmt2, parse_table_t1 ),
-    ( 50, url_fmt2, parse_table_t1 ),
-    ( 51, url_fmt2, parse_table_t1 ),
-    ( 52, url_fmt2, parse_table_t1 ),
-    ( 53, url_fmt2, parse_table_t1 ),
-    ( 54, url_fmt2, parse_table_t1 ),
-    ( 55, url_fmt2, parse_table_t1 ),
-    ( 56, url_fmt2, parse_table_t1 ),
-    ( 57, url_fmt2, parse_table_t1 ),
+    ( 28, url_fmt1, parse_table ),
+    ( 29, url_fmt1, parse_cc ),
+    ( 30, url_fmt1, parse_cc ),
+    ( 31, url_fmt1, parse_cc ),
+    ( 32, url_fmt1, parse_cc ),
+    ( 33, url_fmt1, parse_cc ),
+    ( 34, url_fmt1, parse_cc ),
+    ( 35, url_fmt1, parse_cc ),
+    ( 36, url_fmt1, parse_cc ),
+    ( 37, url_fmt1, parse_cc ),
+    ( 38, url_fmt1, parse_cc ),
+    ( 39, url_fmt1, parse_cc ),
+    ( 40, url_fmt1, parse_cc ),
+    ( 41, url_fmt1, parse_cc ),
+    ( 42, url_fmt1, parse_cc ),
+    ( 43, url_fmt1, parse_cc ),
+    ( 44, url_fmt1, parse_lname_fname ),
+    ( 45, url_fmt1, parse_lname_fname ),
+    ( 46, url_fmt1, parse_lname_fname ),
+    ( 47, url_fmt1, parse_lname_fname ),
+    ( 48, url_fmt1, parse_lname_fname ),
+    ( 49, url_fmt1, parse_table_t1 ),
+    ( 50, url_fmt1, parse_table_t1 ),
+    ( 51, url_fmt1, parse_table_t1 ),
+    ( 52, url_fmt1, parse_table_t1 ),
+    ( 53, url_fmt1, parse_table_t1 ),
+    ( 54, url_fmt1, parse_table_t1 ),
+    ( 55, url_fmt1, parse_table_t1 ),
+    ( 56, url_fmt1, parse_table_t1 ),
+    ( 57, url_fmt1, parse_table_t1 ),
     ( 58, url_fmt4, parse_table_t1 ),
     ( 59, url_fmt5, parse_table_attendee ),
     ( 60, url_fmt5, parse_table_attendee ),
@@ -390,11 +392,13 @@ mtg_def = [
     ( 75, url_fmt8, parse_empty_fname_lname ),
     ( 76, url_fmt8, parse_empty_fname_lname ),
     ( 77, url_fmt8, parse_empty_fname_lname ),
+    ( 78, url_fmt8, parse_empty_fname_lname ),
+    ( 79, url_fmt8, parse_empty_fname_lname ),
 ]
 
 for (mtg, url_fmt, scraper) in mtg_def:
     url = url_fmt % mtg
-    sys.stdout.write('Retrieving RIPE %d attendees...' % mtg)
+    sys.stdout.write('Retrieving RIPE %2d attendees...' % mtg)
     sys.stdout.flush()
     time_a = time.monotonic()
     page = requests.get(url)
