@@ -1,6 +1,6 @@
+flake8
+
 beautifulsoup4
 requests
 lxml
 Genderize
-
-flake8
