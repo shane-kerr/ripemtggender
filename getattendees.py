@@ -16,16 +16,16 @@ import requests
 
 # XXX RIPE 58 Matja<U+009E>,SI
 
-url_fmt1 = 'https://www.ripe.net/participate/meetings/ripe-meetings/ripe-%d/attendee-list'
+url_fmt1 = ('https://www.ripe.net/participate/meetings/ripe-meetings/'
+            'ripe-%d/attendee-list')
 # url_fmt2 was migrated to url_fmt1 on the server side
-#url_fmt2 = 'https://www.ripe.net/participate/meetings/ripe-meetings/ripe-%d/attendee-list'
 # url_fmt3 was migrated to url_fmt1 on the server side
-#url_fmt3 = 'https://www.ripe.net/participate/meetings/ripe-meetings/ripe-%d/attendees'
 url_fmt4 = 'https://ripe%d.ripe.net/attendee_list.html'
 url_fmt5 = 'https://ripe%d.ripe.net/attendees.html'
 url_fmt6 = 'https://ripe%d.ripe.net/registration/attendee-list/'
 url_fmt7 = 'https://ripe%d.ripe.net/attendee-list/'
 url_fmt8 = 'https://ripe%d.ripe.net/attend/attendee-list/'
+
 
 # Our earliest attendee lists are just HTML text
 def parse_early(soup):
@@ -92,6 +92,7 @@ def parse_pre(soup):
 
     return attendees
 
+
 # Meeting 19 has 3 lines per attendee: name, company, e-mail
 def parse_three_lines(soup):
     attendees = []
@@ -106,7 +107,7 @@ def parse_three_lines(soup):
     if not lines:
         lines = text.split("<br />")
     while lines:
-        if not lines[0].strip(): 
+        if not lines[0].strip():
             break
 
         info = lines[0].split()
@@ -122,11 +123,16 @@ def parse_three_lines(soup):
         # skip organization line
         lines = lines[1:]
         # if we have an e-mail, skip e-mail line
-        if ("_at_" in lines[0]) or ("@" in lines[0]) or lines[0].endswith(".sk"):
+        if "_at_" in lines[0]:
+            lines = lines[1:]
+        elif "@" in lines[0]:
+            lines = lines[1:]
+        elif lines[0].endswith(".sk"):
             lines = lines[1:]
         attendees.append((fname, 'XX'))
 
     return attendees
+
 
 # RIPE 20, 25, and 26 have 2-lines per attendee, we only want the first line
 def parse_two_lines(soup):
@@ -148,6 +154,7 @@ def parse_two_lines(soup):
 
     return attendees
 
+
 # RIPE 28 started providing attendee list in an HTML table
 def parse_table(soup):
     attendees = []
@@ -163,6 +170,7 @@ def parse_table(soup):
             attendees.append((fname, 'XX'))
 
     return attendees
+
 
 # For RIPE 29 a country code was added to the HTML table
 def parse_cc(soup):
@@ -206,6 +214,7 @@ def parse_cc(soup):
 
     return attendees
 
+
 # Starting at RIPE 44 first and last names were recorded separately
 def parse_lname_fname(soup):
     attendees = []
@@ -216,7 +225,7 @@ def parse_lname_fname(soup):
     for row in rows:
         cols = [col.text for col in row.find_all('td')]
         if cols:
-            lname, fname, country = cols[0], cols[1], cols[2].strip()
+            _, fname, country = cols[0], cols[1], cols[2].strip()
             # a few strange country entries
             if country == "GERMANY":
                 country = 'DE'
@@ -229,7 +238,8 @@ def parse_lname_fname(soup):
 
     return attendees
 
-# For RIPE 49 the organization & country columns were swapped, and the 
+
+# For RIPE 49 the organization & country columns were swapped, and the
 # table was given an id of "t1"
 def parse_table_t1(soup):
     attendees = []
@@ -240,10 +250,10 @@ def parse_table_t1(soup):
     for row in rows:
         cols = [col.text for col in row.find_all('td')]
         if cols:
-            if len(cols) >= 4: 
-                lname, fname, country = cols[0], cols[1], cols[3].strip()
+            if len(cols) >= 4:
+                _, fname, country = cols[0], cols[1], cols[3].strip()
             else:
-                lname, fname, country = cols[0], cols[1], ''
+                _, fname, country = cols[0], cols[1], ''
             # RIPE 49 used __ for some attendees
             if country == '__':
                 country = ''
@@ -254,6 +264,7 @@ def parse_table_t1(soup):
 
     return attendees
 
+
 # RIPE 59 changed the name of the table (and the URL)
 def parse_table_attendee(soup):
     attendees = []
@@ -263,10 +274,11 @@ def parse_table_attendee(soup):
     rows = table_body.find_all('tr')
     for row in rows:
         cols = [col.text for col in row.find_all('td')]
-        lname, fname, country = cols[0], cols[1], cols[3].strip()
+        _, fname, country = cols[0], cols[1], cols[3].strip()
         attendees.append((fname, country))
 
     return attendees
+
 
 # Some country fixups
 def country_fixups(country):
@@ -286,6 +298,7 @@ def country_fixups(country):
         fixed = ''
     return fixed
 
+
 # RIPE 64 switched to putting first name first
 def parse_fname_lname(soup):
     attendees = []
@@ -295,10 +308,11 @@ def parse_fname_lname(soup):
     rows = table_body.find_all('tr')
     for row in rows:
         cols = [col.text for col in row.find_all('td')]
-        fname, lname, country = cols[0], cols[1], country_fixups(cols[3])
+        fname, _, country = cols[0], cols[1], country_fixups(cols[3])
         attendees.append((fname, country))
 
     return attendees
+
 
 # RIPE 74 added an empty first column
 def parse_empty_fname_lname(soup):
@@ -309,91 +323,93 @@ def parse_empty_fname_lname(soup):
     rows = table_body.find_all('tr')
     for row in rows:
         cols = [col.text for col in row.find_all('td')]
-        fname, lname, country = cols[1], cols[2], country_fixups(cols[4])
+        fname, _, _, country, _ = (cols[1], cols[2], cols[3],
+                                   country_fixups(cols[4]), cols[6])
         attendees.append((fname, country))
 
     return attendees
 
+
 mtg_def = [
-    (  1, url_fmt1, parse_table ),
-    (  2, url_fmt1, parse_table ),
-    (  3, url_fmt1, parse_table ),
-    (  4, url_fmt1, parse_table ),
-    (  5, url_fmt1, parse_table ),
-    (  6, url_fmt1, parse_table ),
-    (  7, url_fmt1, parse_table ),
-    (  8, url_fmt1, parse_table ),
-    (  9, url_fmt1, parse_table ),
-    ( 10, url_fmt1, parse_table ),
-    ( 11, url_fmt1, parse_table ),
-    ( 12, url_fmt1, parse_table ),
-    ( 13, url_fmt1, parse_table ),
-    ( 14, url_fmt1, parse_table ),
-    ( 15, url_fmt1, parse_table ),
-    ( 16, url_fmt1, parse_table ),
-    ( 17, url_fmt1, parse_table ),
-    ( 18, url_fmt1, parse_table ),
-    ( 19, url_fmt1, parse_table ),
-    ( 20, url_fmt1, parse_table ),
-    ( 21, url_fmt1, parse_table ),
-    ( 22, url_fmt1, parse_table ),
-    ( 23, url_fmt1, parse_table ),
-    ( 24, url_fmt1, parse_table ),
-    ( 25, url_fmt1, parse_table ),
-    ( 26, url_fmt1, parse_table ),
+    (1, url_fmt1, parse_table),
+    (2, url_fmt1, parse_table),
+    (3, url_fmt1, parse_table),
+    (4, url_fmt1, parse_table),
+    (5, url_fmt1, parse_table),
+    (6, url_fmt1, parse_table),
+    (7, url_fmt1, parse_table),
+    (8, url_fmt1, parse_table),
+    (9, url_fmt1, parse_table),
+    (10, url_fmt1, parse_table),
+    (11, url_fmt1, parse_table),
+    (12, url_fmt1, parse_table),
+    (13, url_fmt1, parse_table),
+    (14, url_fmt1, parse_table),
+    (15, url_fmt1, parse_table),
+    (16, url_fmt1, parse_table),
+    (17, url_fmt1, parse_table),
+    (18, url_fmt1, parse_table),
+    (19, url_fmt1, parse_table),
+    (20, url_fmt1, parse_table),
+    (21, url_fmt1, parse_table),
+    (22, url_fmt1, parse_table),
+    (23, url_fmt1, parse_table),
+    (24, url_fmt1, parse_table),
+    (25, url_fmt1, parse_table),
+    (26, url_fmt1, parse_table),
     # 27 is missing from the RIPE web site
-    ( 28, url_fmt1, parse_table ),
-    ( 29, url_fmt1, parse_cc ),
-    ( 30, url_fmt1, parse_cc ),
-    ( 31, url_fmt1, parse_cc ),
-    ( 32, url_fmt1, parse_cc ),
-    ( 33, url_fmt1, parse_cc ),
-    ( 34, url_fmt1, parse_cc ),
-    ( 35, url_fmt1, parse_cc ),
-    ( 36, url_fmt1, parse_cc ),
-    ( 37, url_fmt1, parse_cc ),
-    ( 38, url_fmt1, parse_cc ),
-    ( 39, url_fmt1, parse_cc ),
-    ( 40, url_fmt1, parse_cc ),
-    ( 41, url_fmt1, parse_cc ),
-    ( 42, url_fmt1, parse_cc ),
-    ( 43, url_fmt1, parse_cc ),
-    ( 44, url_fmt1, parse_lname_fname ),
-    ( 45, url_fmt1, parse_lname_fname ),
-    ( 46, url_fmt1, parse_lname_fname ),
-    ( 47, url_fmt1, parse_lname_fname ),
-    ( 48, url_fmt1, parse_lname_fname ),
-    ( 49, url_fmt1, parse_table_t1 ),
-    ( 50, url_fmt1, parse_table_t1 ),
-    ( 51, url_fmt1, parse_table_t1 ),
-    ( 52, url_fmt1, parse_table_t1 ),
-    ( 53, url_fmt1, parse_table_t1 ),
-    ( 54, url_fmt1, parse_table_t1 ),
-    ( 55, url_fmt1, parse_table_t1 ),
-    ( 56, url_fmt1, parse_table_t1 ),
-    ( 57, url_fmt1, parse_table_t1 ),
-    ( 58, url_fmt4, parse_table_t1 ),
-    ( 59, url_fmt5, parse_table_attendee ),
-    ( 60, url_fmt5, parse_table_attendee ),
-    ( 61, url_fmt6, parse_table_attendee ),
-    ( 62, url_fmt7, parse_table_attendee ),
-    ( 63, url_fmt7, parse_table_attendee ),
-    ( 64, url_fmt7, parse_fname_lname ),
-    ( 65, url_fmt7, parse_fname_lname ),
-    ( 66, url_fmt8, parse_fname_lname ),
-    ( 67, url_fmt8, parse_fname_lname ),
-    ( 68, url_fmt8, parse_fname_lname ),
-    ( 69, url_fmt8, parse_fname_lname ),
-    ( 70, url_fmt8, parse_fname_lname ),
-    ( 71, url_fmt8, parse_fname_lname ),
-    ( 72, url_fmt8, parse_fname_lname ),
-    ( 73, url_fmt8, parse_fname_lname ),
-    ( 74, url_fmt8, parse_empty_fname_lname ),
-    ( 75, url_fmt8, parse_empty_fname_lname ),
-    ( 76, url_fmt8, parse_empty_fname_lname ),
-    ( 77, url_fmt8, parse_empty_fname_lname ),
-    ( 78, url_fmt8, parse_empty_fname_lname ),
-    ( 79, url_fmt8, parse_empty_fname_lname ),
+    (28, url_fmt1, parse_table),
+    (29, url_fmt1, parse_cc),
+    (30, url_fmt1, parse_cc),
+    (31, url_fmt1, parse_cc),
+    (32, url_fmt1, parse_cc),
+    (33, url_fmt1, parse_cc),
+    (34, url_fmt1, parse_cc),
+    (35, url_fmt1, parse_cc),
+    (36, url_fmt1, parse_cc),
+    (37, url_fmt1, parse_cc),
+    (38, url_fmt1, parse_cc),
+    (39, url_fmt1, parse_cc),
+    (40, url_fmt1, parse_cc),
+    (41, url_fmt1, parse_cc),
+    (42, url_fmt1, parse_cc),
+    (43, url_fmt1, parse_cc),
+    (44, url_fmt1, parse_lname_fname),
+    (45, url_fmt1, parse_lname_fname),
+    (46, url_fmt1, parse_lname_fname),
+    (47, url_fmt1, parse_lname_fname),
+    (48, url_fmt1, parse_lname_fname),
+    (49, url_fmt1, parse_table_t1),
+    (50, url_fmt1, parse_table_t1),
+    (51, url_fmt1, parse_table_t1),
+    (52, url_fmt1, parse_table_t1),
+    (53, url_fmt1, parse_table_t1),
+    (54, url_fmt1, parse_table_t1),
+    (55, url_fmt1, parse_table_t1),
+    (56, url_fmt1, parse_table_t1),
+    (57, url_fmt1, parse_table_t1),
+    (58, url_fmt4, parse_table_t1),
+    (59, url_fmt5, parse_table_attendee),
+    (60, url_fmt5, parse_table_attendee),
+    (61, url_fmt6, parse_table_attendee),
+    (62, url_fmt7, parse_table_attendee),
+    (63, url_fmt7, parse_table_attendee),
+    (64, url_fmt7, parse_fname_lname),
+    (65, url_fmt7, parse_fname_lname),
+    (66, url_fmt8, parse_fname_lname),
+    (67, url_fmt8, parse_fname_lname),
+    (68, url_fmt8, parse_fname_lname),
+    (69, url_fmt8, parse_fname_lname),
+    (70, url_fmt8, parse_fname_lname),
+    (71, url_fmt8, parse_fname_lname),
+    (72, url_fmt8, parse_fname_lname),
+    (73, url_fmt8, parse_fname_lname),
+    (74, url_fmt8, parse_empty_fname_lname),
+    (75, url_fmt8, parse_empty_fname_lname),
+    (76, url_fmt8, parse_empty_fname_lname),
+    (77, url_fmt8, parse_empty_fname_lname),
+    (78, url_fmt8, parse_empty_fname_lname),
+    (79, url_fmt8, parse_empty_fname_lname),
 ]
 
 for (mtg, url_fmt, scraper) in mtg_def:
@@ -406,7 +422,8 @@ for (mtg, url_fmt, scraper) in mtg_def:
     sys.stdout.write(" done (%.2f seconds)..." % (time_b - time_a))
     soup = BeautifulSoup(page.content, 'lxml')
     attendees = scraper(soup)
-    with open('ripe%02d-attendees.csv' % mtg, 'w', encoding='utf-8') as csvfile:
+    fname = 'ripe%02d-attendees.csv' % mtg
+    with open(fname, 'w', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
         for attendee in attendees:
             writer.writerow(attendee)
