@@ -613,6 +613,10 @@ mtg_def = [
     (77, url_fmt8, parse_empty_fname_lname),
     (78, url_fmt8, parse_empty_fname_lname),
     (79, url_fmt8, parse_empty_fname_lname),
+    (80, url_fmt7, parse_empty_fname_lname),
+    (81, url_fmt8, parse_empty_fname_lname),
+    (82, url_fmt7, parse_empty_fname_lname),
+    (83, url_fmt7, parse_empty_fname_lname),
 ]
 
 
