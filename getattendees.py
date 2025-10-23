@@ -330,6 +330,64 @@ def parse_empty_fname_lname(soup):
     return attendees
 
 
+# RIPE 84 removed the table ID, and split the
+# attendees into onsite and online
+def parse_empty_fname_lname_from_class(soup):
+    all_attendees = []
+
+    class_attrs = 'table table-striped attendeeTable'
+    for table in soup.find_all('table', attrs={'class': class_attrs}):
+        attendees = []
+        table_body = table.find('tbody')
+        rows = table_body.find_all('tr')
+        for row in rows:
+            cols = [col.text for col in row.find_all('td')]
+            fname, _, _, country, _ = (cols[2], cols[2], cols[3],
+                                       country_fixups(cols[4]), cols[6])
+            attendees.append((fname, country))
+        all_attendees.append(attendees)
+
+    return all_attendees
+
+
+# RIPE 88 added a table ID back for a single meeting
+def parse_split_by_id(soup):
+    all_attendees = []
+
+    for data_table in range(2):
+        id_attr = f'DataTables_Table_{data_table}'
+        table = soup.find('table', attrs={'id': id_attr})
+        attendees = []
+        table_body = table.find('tbody')
+        rows = table_body.find_all('tr')
+        for row in rows:
+            cols = [col.text for col in row.find_all('td')]
+            fname, country = cols[1], cols[4]
+            attendees.append((fname, country))
+        all_attendees.append(attendees)
+
+    return all_attendees
+
+
+# RIPE 91 added a table ID back (hopefully for good), and merged the
+# onsite/online tables
+def parse_unified_hybrid_table(soup):
+    onsite = []
+    online = []
+    table = soup.find('table', attrs={'id': 'attendee-table'})
+    table_body = table.find('tbody')
+    rows = table_body.find_all('tr')
+    for row in rows:
+        cols = [col.text for col in row.find_all('td')]
+        fname, country, location = cols[0], cols[3], cols[6]
+        if location == 'Onsite':
+            onsite.append((fname, country))
+        else:
+            assert location == 'Virtual'
+            online.append((fname, country))
+    return [onsite, online]
+
+
 mtg_def = [
     (1, url_fmt1, parse_table),
     (2, url_fmt1, parse_table),
@@ -410,13 +468,24 @@ mtg_def = [
     (77, url_fmt8, parse_empty_fname_lname),
     (78, url_fmt8, parse_empty_fname_lname),
     (79, url_fmt8, parse_empty_fname_lname),
-    (80, url_fmt7, parse_empty_fname_lname),
-    (81, url_fmt8, parse_empty_fname_lname),
-    (82, url_fmt7, parse_empty_fname_lname),
-    (83, url_fmt7, parse_empty_fname_lname),
+    (80, url_fmt7, parse_empty_fname_lname, "virtual"),
+    (81, url_fmt8, parse_empty_fname_lname, "virtual"),
+    (82, url_fmt7, parse_empty_fname_lname, "virtual"),
+    (83, url_fmt7, parse_empty_fname_lname, "virtual"),
+    (84, url_fmt7, parse_empty_fname_lname_from_class, "hybrid"),
+    (85, url_fmt8, parse_empty_fname_lname_from_class, "hybrid"),
+    (86, url_fmt8, parse_empty_fname_lname_from_class, "hybrid"),
+    (87, url_fmt8, parse_empty_fname_lname_from_class, "hybrid"),
+    (88, url_fmt8, parse_split_by_id, "hybrid"),
+    (89, url_fmt8, parse_empty_fname_lname_from_class, "hybrid"),
+    (90, url_fmt8, parse_empty_fname_lname_from_class, "hybrid"),
 ]
 
-for (mtg, url_fmt, scraper) in mtg_def:
+mtg_def = [
+    (91, url_fmt8, parse_unified_hybrid_table, "hybrid"),
+]
+
+for (mtg, url_fmt, scraper, *mtg_type) in mtg_def:
     url = url_fmt % mtg
     sys.stdout.write('Retrieving RIPE %2d attendees...' % mtg)
     sys.stdout.flush()
@@ -426,9 +495,32 @@ for (mtg, url_fmt, scraper) in mtg_def:
     sys.stdout.write(" done (%.2f seconds)..." % (time_b - time_a))
     soup = BeautifulSoup(page.content, 'lxml')
     attendees = scraper(soup)
-    fname = 'ripe%02d-attendees.csv' % mtg
-    with open(fname, 'w', encoding='utf-8') as csvfile:
-        writer = csv.writer(csvfile)
-        for attendee in attendees:
-            writer.writerow(attendee)
-    sys.stdout.write(" got %3d attendees\n" % len(attendees))
+    if mtg_type:
+        if mtg_type[0] == 'virtual':
+            fname = 'ripe%02d-attendees-online.csv' % mtg
+            with open(fname, 'w', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                for attendee in attendees:
+                    writer.writerow(attendee)
+            sys.stdout.write(" got %3d attendees\n" % len(attendees))
+        else:
+            assert mtg_type[0] == 'hybrid'
+            fname = 'ripe%02d-attendees-onsite.csv' % mtg
+            with open(fname, 'w', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                for attendee in attendees[0]:
+                    writer.writerow(attendee)
+            fname = 'ripe%02d-attendees-online.csv' % mtg
+            with open(fname, 'w', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                for attendee in attendees[1]:
+                    writer.writerow(attendee)
+            sys.stdout.write(" got %3d attendees\n" %
+                             sum([len(a) for a in attendees]))
+    else:
+        fname = 'ripe%02d-attendees.csv' % mtg
+        with open(fname, 'w', encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile)
+            for attendee in attendees:
+                writer.writerow(attendee)
+        sys.stdout.write(" got %3d attendees\n" % len(attendees))
