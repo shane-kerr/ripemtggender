@@ -8,6 +8,7 @@ import time
 # Did RIPE 36 really only have 58 attendees? RIPE 38 only 120?
 
 from bs4 import BeautifulSoup
+import pycountry
 import requests
 
 # Note: Once we start recording first name we have problems with
@@ -282,20 +283,20 @@ def parse_table_attendee(soup):
 
 # Some country fixups
 def country_fixups(country):
+    fixes = {
+        'Palestinian Territory': 'PS',
+        'Moldova': 'MD',
+        'Macedonia': 'MK',
+        'Scotland': 'GB',
+        'Taiwan': 'TW',
+        'Stateless': '',
+        'Wales': 'GB',
+        'Iran': 'IR',
+        'Turkey': 'TR',
+    }
     fixed = country.strip()
-    if fixed == 'Palestinian Territory':
-        fixed = 'PS'
-    if fixed == 'Moldova':
-        fixed = 'MD'
-    if fixed == 'Macedonia':
-        fixed = 'MK'
-    # Bravehearts
-    if fixed == 'Scotland':
-        fixed = 'GB'
-    if "Taiwan" in fixed:
-        fixed = 'TW'
-    if "Stateless" in fixed:
-        fixed = ''
+    if fixed in fixes:
+        return fixes[fixed]
     return fixed
 
 
@@ -342,8 +343,7 @@ def parse_empty_fname_lname_from_class(soup):
         rows = table_body.find_all('tr')
         for row in rows:
             cols = [col.text for col in row.find_all('td')]
-            fname, _, _, country, _ = (cols[2], cols[2], cols[3],
-                                       country_fixups(cols[4]), cols[6])
+            fname, country = cols[1], cols[4]
             attendees.append((fname, country))
         all_attendees.append(attendees)
 
@@ -370,7 +370,8 @@ def parse_split_by_id(soup):
 
 
 # RIPE 91 added a table ID back (hopefully for good), and merged the
-# onsite/online tables
+# onsite/online tables.
+# Also, the site stopped presenting country codes and used country names.
 def parse_unified_hybrid_table(soup):
     onsite = []
     online = []
@@ -379,12 +380,31 @@ def parse_unified_hybrid_table(soup):
     rows = table_body.find_all('tr')
     for row in rows:
         cols = [col.text for col in row.find_all('td')]
-        fname, country, location = cols[0], cols[3], cols[6]
+        fname, country_name, location = cols[0], cols[3].title(), cols[6]
+        country = pycountry.countries.get(name=country_name)
+        if not country:
+            country = pycountry.countries.get(alpha_2=country_fixups(
+                        country_name))
+            if not country:
+                matches = pycountry.countries.search_fuzzy(country_name)
+                if matches and (len(matches) == 1):
+                    country = matches[0]
+                else:
+                    matches = pycountry.historic_countries.search_fuzzy(
+                                country_name)
+                    if matches and (len(matches) == 1):
+                        country = matches[0]
+
+        if country:
+            iso_cc = country.alpha_2
+        else:
+            print(f'bogus country name {country_name}')
+            iso_cc = ""
         if location == 'Onsite':
-            onsite.append((fname, country))
+            onsite.append((fname, iso_cc))
         else:
             assert location == 'Virtual'
-            online.append((fname, country))
+            online.append((fname, iso_cc))
     return [onsite, online]
 
 
