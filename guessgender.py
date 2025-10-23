@@ -419,6 +419,11 @@ def get_split_names(names):
 for file_name in sys.argv[1:]:
     mtg_id = re.sub(r'^([A-Z]+)(\d+)-.*$', r'\g<1> \g<2>', file_name.upper())
     mtg_name = re.sub(r' \d+$', '', mtg_id).lower()
+    mtg_title = mtg_id
+    if 'online' in file_name:
+        mtg_title += ' (online)'
+    elif 'onsite' in file_name:
+        mtg_title += ' (onsite)'
 
     print("--- %s ----------------" % mtg_id, flush=True)
 
@@ -467,7 +472,7 @@ for file_name in sys.argv[1:]:
 
     with open(mtg_name + '-genders.csv', 'a', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile, dialect='unix')
-        writer.writerow((mtg_id,
+        writer.writerow((mtg_title,
                          "%.2f" % xy_sum,
                          "%.2f" % xx_sum,
                          "%.2f" % na_sum))
